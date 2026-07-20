@@ -34,9 +34,11 @@ export const MENU_ITEMS: MenuItemType[] = [
     key: "roles",
     icon: "fas fa-unlock",
     label: "Roles y Permisos",
-    route: { name: "dashboards.ecommerce" },
+    route: { name: "roles.index" },
     parentKey: "roles",
   },
+
+  
   {
     key: "usuarios",
     icon: "fas fa-users",

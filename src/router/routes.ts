@@ -94,10 +94,22 @@ const dashboardRoutes = [
   },
 ];
 
-
+const accessRoutes = [
+  {
+    path: "/roles",
+    name: "roles.index",
+    meta: {
+      title: setTitle("Roles"),
+      authRequired: true,
+      permission: 'all',
+    },
+    component: () => import("@/views/role/index.vue"),
+  },
+];
 
 export const allRoute = [
   ...authRoutes,
   ...errorRoutes,
   ...dashboardRoutes,
+  ...accessRoutes,
 ];
