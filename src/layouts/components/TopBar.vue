@@ -18,8 +18,9 @@
             </button>
           </li>
           <li class="mx-3 welcome-text">
-            <h3 class="mb-0 fw-bold text-truncate">Good Morning, James!</h3>
-            <!-- <h6 class="mb-0 fw-normal text-muted text-truncate fs-14">Here's your overview this week.</h6> -->
+                <h3 class="mb-0 fw-bold text-truncate">
+                  {{ greeting }}, {{ user?.full_name || 'Sumaran' }}!
+                </h3>
           </li>
         </ul>
         <ul
@@ -48,19 +49,19 @@
               <img :src="usFlag" alt="" class="thumb-sm rounded-circle" />
             </a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#">
+              <a class="dropdown-item" href="#" @click.prevent="setLang('en')">
                 <img :src="usFlag" alt="" height="15" class="me-2" />
                 English
               </a>
-              <a class="dropdown-item" href="#">
+              <a class="dropdown-item" href="#" @click.prevent="setLang('es')">
                 <img :src="spainFlag" alt="" height="15" class="me-2" />
                 Spanish
               </a>
-              <a class="dropdown-item" href="#">
+              <a class="dropdown-item" href="#" @click.prevent="setLang('de')">
                 <img :src="germanyFlag" alt="" height="15" class="me-2" />
                 German
               </a>
-              <a class="dropdown-item" href="#">
+              <a class="dropdown-item" href="#" @click.prevent="setLang('fr')">
                 <img :src="frenchFlag" alt="" height="15" class="me-2" />
                 French
               </a>
@@ -372,18 +373,18 @@
               aria-haspopup="false"
               aria-expanded="false"
             >
-              <img :src="avatar1" alt="" class="thumb-lg rounded-circle" />
+              <img :src="userAvatar" alt="" class="thumb-lg rounded-circle" />
             </a>
             <div class="dropdown-menu dropdown-menu-end py-0">
               <div
                 class="d-flex align-items-center dropdown-item py-2 bg-secondary-subtle"
               >
                 <div class="flex-shrink-0">
-                  <img :src="avatar1" alt="" class="thumb-md rounded-circle" />
+                  <img :src="userAvatar" alt="" class="thumb-md rounded-circle" />
                 </div>
-                <div class="flex-grow-1 ms-2 text-truncate align-self-center">
-                  <h6 class="my-0 fw-medium text-dark fs-13">William Martin</h6>
-                  <small class="text-muted mb-0">Front End Developer</small>
+                <div class="flex-grow-1 ms-2 text-truncate align-self-center" v-if="user">
+                  <h6 class="my-0 fw-medium text-dark fs-13">{{ user.full_name }}</h6>
+                  <small class="text-muted mb-0">{{ user.email }}</small>
                 </div>
               </div>
               <div class="dropdown-divider mt-0"></div>
@@ -416,7 +417,6 @@
                 Help Center
               </router-link>
               <div class="dropdown-divider mb-0"></div>
-              <!-- to="/auth/login" -->
               <a class="dropdown-item text-danger" @click="removeSession()">
                 <i class="las la-power-off fs-18 me-1 align-text-bottom"></i>
                 Logout
@@ -428,13 +428,16 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+// MODIFICADO: Importamos computed y onUnmounted
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import simplebar from "simplebar-vue";
 import DropDown from "@/components/DropDown.vue";
 import { useLayoutStore } from "@/stores/layout";
 
 import { useAuthStore } from "@/stores/auth";
+import type { User } from "@/types/auth";
 
 const show = ref("all-tab");
 const useLayout = useLayoutStore();
@@ -469,7 +472,7 @@ const resize = () => {
 };
 
 const useAuth = useAuthStore();
-
+const user = ref<User>(null);
 const removeSession = () => {
   // user.value = null;
   localStorage.removeItem("token");
@@ -484,6 +487,50 @@ import spainFlag from "@/assets/images/flags/spain_flag.jpg";
 import germanyFlag from "@/assets/images/flags/germany_flag.jpg";
 import frenchFlag from "@/assets/images/flags/french_flag.jpg";
 import avatar1 from "@/assets/images/users/avatar-1.jpg";
+
+// MODIFICADO: Agregada la lógica limpia para el avatar
+// Si user tiene avatar, lo usa. Si no, usa avatar1.
+const userAvatar = computed(() => {
+  return user.value?.avatar || avatar1;
+});
+
+// Hora actual (reactiva) para actualizar el saludo automáticamente
+const now = ref(new Date());
+let timerId: number | null = null;
+
+// Hora en Lima (Perú)
+const limaHour = computed(() =>
+  Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Lima",
+    }).format(now.value),
+  ),
+);
+
+// Saludo según la hora en Lima
+const greeting = computed(() => {
+  const h = limaHour.value;
+  const langPrefix = currentLang.value || 'en';
+  if (langPrefix.startsWith('es')) {
+    if (h >= 5 && h < 12) return "Buenos días";
+    if (h >= 12 && h < 19) return "Buenas tardes";
+    return "Buenas noches";
+  }
+  // default English
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 19) return "Good afternoon";
+  return "Good evening";
+});
+
+// Idioma actual (default inglés) y setter desde el dropdown
+const currentLang = ref((navigator.language || 'en').split('-')[0]);
+const setLang = (l: string) => {
+  currentLang.value = l;
+};
+
+
 
 const windowScroll = () => {
   const navbar = document.getElementById("topbar-custom");
@@ -526,5 +573,15 @@ onMounted(() => {
     resize();
   });
   leftSideBarClick();
+  // console.log(useAuth.user);
+  user.value = useAuth.user;
+  // Actualizar `now` cada minuto para que `greeting` cambie automáticamente
+  timerId = window.setInterval(() => {
+    now.value = new Date();
+  }, 60000);
+});
+
+onUnmounted(() => {
+  if (timerId) clearInterval(timerId);
 });
 </script>
