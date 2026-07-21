@@ -101,9 +101,21 @@ const accessRoutes = [
     meta: {
       title: setTitle("Roles"),
       authRequired: true,
-      permission: 'all',
+      //permission: 'all',
+     permission: 'list_role',
     },
     component: () => import("@/views/role/index.vue"),
+  },
+  {
+    path: "/users",
+    name: "users.index",
+    meta: {
+      title: setTitle("Usuarios"),
+      authRequired: true,
+     // permission: 'all',
+      permission: 'list_user',
+    },
+    component: () => import("@/views/user/index.vue"),
   },
 ];
 

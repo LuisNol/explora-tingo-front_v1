@@ -25,10 +25,11 @@ export const MENU_ITEMS: MenuItemType[] = [
       },
     ],
   },
-  {
+ {
     key: "Accesos",
     label: "ACCESS",
     isTitle: true,
+    permissions: ['list_role','list_user',]
   },
   {
     key: "roles",
@@ -36,16 +37,18 @@ export const MENU_ITEMS: MenuItemType[] = [
     label: "Roles y Permisos",
     route: { name: "roles.index" },
     parentKey: "roles",
+    permission: 'list_role',
   },
-
-  
   {
     key: "usuarios",
     icon: "fas fa-users",
     label: "Usuarios",
-    route: { name: "dashboards.ecommerce" },
+    route: { name: "users.index" },
     parentKey: "usuarios",
+    permission: 'list_user',
   },
+  
+
   {
     key: "Comercial",
     label: "COMERCIAL",
