@@ -29,12 +29,12 @@ export const useAuthStore = defineStore("auth_store", () => {
     let USER = user.value;
     if(USER && USER.role?.name != 'Super-Admin'){
      //LISTA DE PERMISOS DEL USUARIO AUTENTICADO
-     let permissions = USER.permissions;//["1","2","3"].includes("5")
-     if(permissions?.includes(permission) || permission == 'all'){
-      return true;
-     } else {
-      return false;
-     }
+      let permissions = USER.permissions;//["1","2","3"].includes("5")
+      if(permissions?.includes(permission) || permission == 'all'){
+       return true;
+      } else {
+       return false;
+      }
     }
     return true;
   }
