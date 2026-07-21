@@ -9,7 +9,7 @@
                                 <b-card-title>💁 Usuarios</b-card-title>
                             </b-col>
                             <b-col lg="2">
-                                <b-button type="button" variant="success" @click="openModal = !openModal">
+                                <b-button type="button" v-if="authStore.isPermitedRoute('register_user')" variant="success" @click="openModal = !openModal">
                                     <i class="far fa-plus-square ml-3"></i> Registrar
                                 </b-button>
                             </b-col>
@@ -64,9 +64,9 @@
                                         <td>{{ user.role.name }}</td>
                                         <td>{{ user.created_at }}</td>
                                         <td>
-                                            <a href="#" onclick="return false;" @click="editUser(user)">
+                                            <a href="#" onclick="return false;" v-if="authStore.isPermitedRoute('edit_user')" @click="editUser(user)">
                                                 <i class="las la-pen text-secondary fs-22"></i></a>{{ " " }}
-                                            <a href="#" onclick="return false;" @click="deleteUser(user)">
+                                            <a href="#" onclick="return false;" v-if="authStore.isPermitedRoute('delete_user')" @click="deleteUser(user)">
                                                 <i class="las la-trash-alt text-secondary fs-22"></i>
                                             </a>
                                         </td>
@@ -119,7 +119,7 @@
                         type="text"
                         id="email-user"
                         v-model="email"
-                        placeholder="Example: laravest@gmail.com"
+                        placeholder="Example: nolberto.sumaran@gmail.com"
                     />
                 </b-col>
 
@@ -129,7 +129,7 @@
                         type="number"
                         id="phone-user"
                         v-model="phone"
-                        placeholder="Example: laravest@gmail.com"
+                        placeholder="Example: nolberto.sumaran@gmail.com"
                     />
                 </b-col>
                 <b-col lg="4">
@@ -204,7 +204,12 @@
                         >
                             Cerrar
                         </b-button>
-                        <b-button type="button" variant="primary" @click="store">
+                        <b-button
+                            type="button"
+                            variant="primary"
+                            v-if="authStore.isPermitedRoute(user_selected ? 'edit_user' : 'register_user')"
+                            @click="store"
+                        >
                             {{ user_selected ? 'Editar' : 'Crear' }}
                         </b-button>
                     </div>
@@ -218,6 +223,7 @@ import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import type { AxiosResponse } from "axios";
 import { onMounted, ref, watch } from "vue";
 import HttpClient from "@/helpers/http-client";
+import { useAuthStore } from "@/stores/auth";
 
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import type { RoleUser, User, UserResponse, Users } from "@/types/users";
@@ -242,6 +248,7 @@ const FILE_AVATAR = ref<File | null>(null);
 
 const openModal = ref(false);
 const themeColor = ref<any>("primary");
+const authStore = useAuthStore();
 
 const user_selected = ref<User>();
 
@@ -270,6 +277,22 @@ const reset = () => {
 }
 const store = async () => {
     try {
+        if(user_selected.value && !authStore.isPermitedRoute('edit_user')){
+            (Swal as TVueSwalInstance).fire(
+                "Upps!",
+                "No tienes permiso para editar usuarios",
+                "error",
+            );
+            return;
+        }
+        if(!user_selected.value && !authStore.isPermitedRoute('register_user')){
+            (Swal as TVueSwalInstance).fire(
+                "Upps!",
+                "No tienes permiso para registrar usuarios",
+                "error",
+            );
+            return;
+        }
         if(!name.value){
             (Swal as TVueSwalInstance).fire(
                 "Upps!",
@@ -413,6 +436,14 @@ const loadFile = ($event:any) => {
 }
 
 const deleteUser = async(user:User) => {
+    if(!authStore.isPermitedRoute('delete_user')){
+        (Swal as TVueSwalInstance).fire(
+            "Upps!",
+            "No tienes permiso para eliminar usuarios",
+            "error",
+        );
+        return;
+    }
     (Swal as TVueSwalInstance)
         .fire({
             title: "Confirmar la eliminación",
@@ -448,6 +479,14 @@ const deleteUser = async(user:User) => {
 }
 
 const editUser = (user:User) => {
+    if(!authStore.isPermitedRoute('edit_user')){
+        (Swal as TVueSwalInstance).fire(
+            "Upps!",
+            "No tienes permiso para editar usuarios",
+            "error",
+        );
+        return;
+    }
     openModal.value = true;
     name.value = user.name;
     surname.value = user.surname ?? '';
